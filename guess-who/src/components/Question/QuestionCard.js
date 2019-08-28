@@ -5,25 +5,36 @@ import "./Question.scss";
 
 const QuestionCard = props => {
 
+  const defaultClass = "candidate-card";
+  const correctAnswer = "candidate-card correctAnswer";
+  const incorrectAnswer = "candidate-card wrongAnswer";
+
   const addDefaultSrc =(ev) => {
     ev.target.src = "./birdLogo.jpeg";
   }
 
+  function click(event) {
+    props.selectCandidate(event, props.id);
+  }
+
+  function setClass() {
+    if (props.highlightCorrectAnswer && props.id === props.answer.id_str) {
+      return correctAnswer;
+    } else if (props.highlightCorrectAnswer && props.id !== props.answer.id_str && props.selectedCandidate === props.id) {
+      return incorrectAnswer;
+    } else {
+      return defaultClass;
+    }
+  }
+
   return (
-    <div>
-      <Card className="question-card">
-<<<<<<< HEAD
-        <Image
-          className="card-imgs"
-          src={[props.imgUrl, "./birdLogo.jpeg"]}
-        ></Image>
-=======
+    <div onClick={click}>
+      <Card className={setClass()}>
         <Image className="card-imgs" src={props.imgUrl} onError={addDefaultSrc}></Image>
->>>>>>> 73d0b9a8c40fe3d753cdc3d796a64ba869c2bdb4
         <Card.Content className="card-content">
           <Card.Header>{props.name}</Card.Header>
           <Card.Meta>@{props.handle}</Card.Meta>
-          <div className="followerCount">
+          <div className="follower-count">
             <Icon name="users" />
             Followers: {props.followers}
           </div>
