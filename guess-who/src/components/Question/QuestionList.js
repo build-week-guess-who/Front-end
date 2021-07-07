@@ -1,133 +1,166 @@
 import React, { useState, useEffect } from "react";
-import { axiosWithAuth } from "../../utils/axiosWithAuth";
-import { Card, Button, Label, Image } from "semantic-ui-react";
+import { Link } from "react-router-dom";
+import { connect } from "react-redux";
+
+import { Card, Button, Label, Image, Modal } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
-import "./Question.scss";
+import "./question.scss";
+import "../../assets/animate.css";
 import QuestionCard from "./QuestionCard";
 import NavbarThree from "../Navbar/Navbar3";
 
-const QuestionList = ({ username, highScore, setState }) => {
-  let [question, setQuestion] = useState("");
+import {
+  getTweets,
+  postScore,
+  setNewHighScore,
+  getUser,
+  login,
+  signup,
+  restartGame,
+  correctGuess,
+  incorrectGuess,
+  getPersonalHighScore
+} from "../../actions/index";
 
-  let [answer, setAnswer] = useState([]);
+const QuestionList = props => {
+  const [openState, setOpenState] = useState({ open: false });
 
-  let [hearts, setHearts] = useState(3);
+  let [highlightCorrectAnswer, setHighlightCorrectAnswer] = useState(false);
+  let [selectedCandidate, setSelectedCandidate] = useState("");
 
-  let [candidates, setCandidates] = useState([]);
+  const show = size => () => setOpenState({ size, open: true });
+  const close = () => setOpenState({ open: false });
 
-  let [imgUrl, setImgUrl] = useState("");
+  function delay(f) {
+    setTimeout(f, 2000);
+  }
 
-  // let [guess, setGuess] = useState("");
+  function reset() {
+    props.restartGame();
+    close();
+  }
 
-  // let [score, setScore] = useState(0);
+  function selectCandidate(event, id) {
+    setHighlightCorrectAnswer(true);
+    setSelectedCandidate(id);
+    if (id === props.answer.id_str) {
+      delay(() => {
+        props.correctGuess();
+        setHighlightCorrectAnswer(false);
+        props.getTweets();
+      });
+    } else {
+      delay(() => {
+        props.incorrectGuess();
 
-  // let [changeQuestion, setChangeQuestion] = useState(false);
+        setHighlightCorrectAnswer(false);
+        props.getTweets();
 
-  // let [tries, setTries] = useState(3);
+        if (props.lives == 1) {
+          if (props.highScore >= props.personalHighScore) {
+            putHighScores(props.highScore);
+          }
+          getHighScores();
+          show("mini")();
+        }
+      });
+    }
+  }
 
-  // let [gameover, setGameover] = useState(false);
+  const getHighScores = () => {
+    props.getPersonalHighScore(props.userId);
+  };
 
-  // useEffect(() => {
-  //   if (guess === answer) {
-  //     setScore(score + 100);
-  //     setChangeQuestion(!changeQuestion);
-  //   } else if (tries <= 0) {
-  //     setGameover(true);
-  //   } else {
-  //     tries--;
-  //   }
-
-  //   if (gameover) {
-  //     setGameover(false);
-  //   }
-  // }, [guess]);
-
-  // const handleSubmit = () => {
-  //   setAnswer();
-  //   if (answer === answer) {
-  //     setState({ ...state, highScore: highScore + 100 });
-  //   }
-  // };
+  const putHighScores = highScore => {
+    props.postScore(props.userId, highScore);
+  };
 
   useEffect(() => {
-    axiosWithAuth()
-      .get("https://lambda-guess-who.herokuapp.com/api/question")
-      .then(res => {
-        console.log("question and answer:", res);
-        setQuestion(res.data.question);
-        // setAnswer(res.data.answer);
-        setCandidates(res.data.candidates);
-        setAnswer(res.data.answer);
-      })
-      .catch(err => console.log(err.response));
+    props.getTweets();
+    getHighScores();
   }, []);
 
   return (
     <Card className="question-list-card">
-      {/* <div className="top-row">
-        <Button.Group attached='top'>
-          <Button href="/guesswho" className="home-button">Home</Button>
-          <Label className="score-label">
-            <Label.Detail className="score">Score: {highScore}</Label.Detail>
-          </Label>
-          <Button className="hearts">
-            {//Set id of each heart to reference with life variable
-            }
-            <Image src="./heart.png" className="heart" id="1"></Image>
-            <Image src="./heart.png" className="heart" id="2"></Image>
-            <Image src="./heart.png" className="heart" id="3"></Image>
-          </Button>
-        </Button.Group>
-      </div> */}
-      <NavbarThree highScore={highScore} />
+      <NavbarThree highScore={props.highScore} lives={props.lives} />
+      <Label color="yellow" image>
+        {/* <img src="./birdLogo.jpeg" /> */}
+        Score:
+        <Label.Detail>{props.highScore}</Label.Detail>
+      </Label>
       <div className="opponents">
         <div className="opponents-div-1">
-          {/* I think we will have to ditch the multiplayer idea as the back end isnt set up for it */}
           <Label color="teal" image>
-            <img src="./birdLogo.jpeg" />
-            Name
-            <Label.Detail>Score</Label.Detail>
-          </Label>
-          <Label color="teal" image>
-            <img src="./birdLogo.jpeg" />
-            Name
-            <Label.Detail>Score</Label.Detail>
-          </Label>
-        </div>
-        <div className="opponents-div-2">
-          <Label color="teal" image>
-            <img src="./birdLogo.jpeg" />
-            Name
-            <Label.Detail>Score</Label.Detail>
-          </Label>
-          <Label color="teal" image>
-            <img src="./birdLogo.jpeg" />
-            Name
-            <Label.Detail>Score</Label.Detail>
+            {/* <img src="./birdLogo.jpeg" /> */}
+            {/* {props.username} */}
+            <Label.Detail>High Score: {props.personalHighScore}</Label.Detail>
           </Label>
         </div>
       </div>
       <div className="question">
-        <h2>Who's Tweet is it?</h2>
-        <p>"{question}"</p>
+        <h2 className="animated heartBeat delay-2s">Who's Tweet is it?</h2>
+        <p>"{props.question}"</p>
       </div>
       <div className="candidate-card-div">
-        {candidates.map(candidate => (
-          //question cards are not yet clickable/do not have a link
+        {props.candidates.map(candidate => (
           <QuestionCard
-            key={candidate.id.id_str}
-            className={candidate.id.id_str}
-            question={question}
+            answer={props.answer}
+            selectCandidate={selectCandidate}
+            id={candidate.id.id_str}
+            key={Math.random()
+              .toString(36)
+              .substring(7)}
+            question={props.question}
             imgUrl={candidate.id.profile_image_url.replace("normal", "bigger")}
             name={candidate.id.name}
             handle={candidate.handle}
             followers={candidate.id.followers_count}
-            answer={answer}
-            hearts={hearts}
+            highlightCorrectAnswer={highlightCorrectAnswer}
+            selectedCandidate={selectedCandidate}
           />
         ))}
       </div>
+      <Modal size={openState.size} open={openState.open} onClose={close}>
+        <Modal.Header>Game Over</Modal.Header>
+        <Modal.Content>
+          <p>You ran out of lives...</p>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button
+            onClick={reset}
+            positive
+            icon="checkmark"
+            labelPosition="right"
+            content="Start a New Game"
+          />
+          <Link to="guesswho">
+            <Button negative>Finish</Button>
+          </Link>
+        </Modal.Actions>
+      </Modal>
     </Card>
   );
 };
-export default QuestionList;
+const mapStateToProps = state => {
+  return {
+    ...state,
+    candidates: state.tweeters,
+    question: state.tweet,
+    userId: localStorage.getItem("userId")
+  };
+};
+export default connect(
+  mapStateToProps,
+  {
+    getTweets,
+    postScore,
+    setNewHighScore,
+    getUser,
+    login,
+    signup,
+    restartGame,
+    correctGuess,
+    incorrectGuess,
+    getPersonalHighScore
+  }
+)(QuestionList);

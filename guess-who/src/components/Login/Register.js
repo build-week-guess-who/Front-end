@@ -23,16 +23,6 @@ function Register({ touched, errors }) {
           <p>{touched.username && errors.username}</p>
         </div>
         <div className="form-box">
-          <label className="label">Email:</label>
-          <Field
-            className="input"
-            name="email"
-            type="email"
-            autoComplete="off"
-          />
-          <p>{touched.email && errors.email}</p>
-        </div>
-        <div className="form-box">
           <label className="label">Password:</label>
           <Field
             className="input"
@@ -42,7 +32,19 @@ function Register({ touched, errors }) {
           />
           <p>{touched.password && errors.password}</p>
         </div>
-       <button type="submit" className="btn"> Register
+        <div className="form-box">
+          <label className="label">Confirm:</label>
+          <Field
+            className="input"
+            name="passwordConfirm"
+            type="password"
+            autoComplete="off"
+          />
+          <p>{touched.password && errors.password}</p>
+        </div>
+        <button type="submit" className="btn">
+          {" "}
+          Register
         </button>
       </Form>
       <div className="login-redirect">
@@ -61,8 +63,7 @@ export default withFormik({
   mapPropsToValues() {
     return {
       username: "",
-      password: "",
-      email: ""
+      password: ""
     };
   },
   validationSchema: Yup.object().shape({
@@ -70,19 +71,11 @@ export default withFormik({
     password: Yup.string()
       .min(6)
       .required("Password is required"),
-    email: Yup.string().required("Email is required")
+    passwordConfirm: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords must match")
+      .required("Password is required")
   }),
   handleSubmit(values, formikBag) {
-    const url = "https://lambda-guess-who.herokuapp.com/api/auth/register";
-    axiosWithAuth()
-      .post(url, values)
-      .then(res => {
-        console.log(res);
-        localStorage.setItem("token", res.data.token);
-        formikBag.props.history.push("/guesswho");
-      })
-      .catch(e => {
-        console.log(e.response);
-      });
+    formikBag.props.getSignup(values);
   }
 })(Register);
