@@ -1,0 +1,44 @@
+* {
+  box-sizing: border-box;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  margin-top: 4rem;
+
+  img {
+    align-content: center;
+    width: 100%;
+  }
+
+  .userName {
+    color: rgba(0, 0, 0, 0.7);
+    text-shadow: 1px 1px black;
+  }
+
+  .container {
+    width: 100%; /* Full width */
+    background-color: #ddd; /* Grey background */
+  }
+
+  .progress-bar {
+    position: relative;
+    height: 20px;
+    width: 100%;
+    border-radius: 50px;
+    border: 1px solid #333;
+    margin-top: 2rem;
+  }
+
+  .filler {
+    background: #fbbd08;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.2s ease-in;
+  }
+}

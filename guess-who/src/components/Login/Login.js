@@ -2,7 +2,7 @@ import React from "react";
 import { withFormik, Form, Field } from "formik";
 import { Link } from "react-router-dom";
 import * as Yup from "yup";
-import { axiosWithAuth } from "../../utils/axiosWithAuth";
+
 import "./login.scss";
 
 import Navbar from "../Navbar/Navbar";
@@ -59,16 +59,5 @@ export default withFormik({
   }),
   handleSubmit(values, formikBag) {
     formikBag.props.getLogin(values);
-    // const url = "https://lambda-guess-who.herokuapp.com/api/auth/login";
-    // axiosWithAuth()
-    //   .post(url, values)
-    //   .then(res => {
-    //     console.log(res);
-    //     localStorage.setItem("token", res.data.token);
-    //     formikBag.props.history.push("/guesswho");
-    //   })
-    //   .catch(e => {
-    //     console.log(e.response);
-    //   });
   }
 })(Login);

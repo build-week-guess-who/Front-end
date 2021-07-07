@@ -1,70 +1,76 @@
 import React, { useState, useEffect } from "react";
-import { axiosWithAuth } from "../../utils/axiosWithAuth";
-import { Card, Image } from "semantic-ui-react";
-import "semantic-ui-css/semantic.min.css";
-import "./Profile.scss";
+import { connect } from "react-redux";
 
+import { Card, Image } from "semantic-ui-react";
+import "./profile.scss";
+import NavbarFour from "../Navbar/Navbar4";
+import ProgressBar from "./ProgressBar";
+import { axiosWithAuth } from "../../utils/axiosWithAuth";
 //Dummy Data before state is able to be passed from login
 const profile = {
-	avatar: "https://images.dog.ceo/breeds/whippet/n02091134_39.jpg",
-	name: "William",
-	score: "35",
-	settings: "Settings",
-	share: "Share Icon to Twitter"
+  avatar: "https://www.m2.com.lb/modules//smartblog/images/139.jpg",
+  header: "My Profile: ",
+  description: "I am a Twitter enthusiast. "
+};
+function ProfileCard(props) {
+  // const [avatar, getAvatar] = useState({})
+  console.log("profile props", props);
+
+  //   const newScores = props.personalHighScore;
+	const [score, setScore] = useState();
+	const userId = localStorage.getItem('userId')
+  useEffect(() => {
+    axiosWithAuth()
+      .get(
+        `https://lambda-guess-who.herokuapp.com/api/user/highscore/${userId}`
+      )
+      .then(res => {
+        console.log("score data", res.data);
+        setScore(res.data);
+      })
+      .catch(err => console.log(err.response));
+  });
+
+  return (
+    <>
+      <NavbarFour />
+
+      <div className="profile-card">
+        <Card>
+          <Image src={profile.avatar} />
+          <Card.Content>
+            <Card.Header>
+              <h1 className="userName">{localStorage.getItem("username")}</h1>
+            </Card.Header>
+            {/* <h2>{profile.header}</h2> */}
+            <ProgressBar percentage={score} />
+            <div class="container">
+              <div className="skills scores" />
+            </div>
+            <h3>{10 - score} points till the next level</h3>
+            <h2>
+              {isNaN(score) ? setScore(0) : score + " "}
+              Tweety Points
+            </h2>
+            <h3>Bio: {profile.description}</h3>
+            {/*profile.settings*/}
+          </Card.Content>
+        </Card>
+      </div>
+    </>
+  );
 }
 
-function ProfileCard({username, highScore}) {
+const mapStateToProps = state => {
+  return {
+    ...state,
+    userId: state.userId,
+    token: state.token,
+    personalHighScore: state.personalHighScore
+  };
+};
 
-
-
-	// const ProfileCard = props => {
-	//   //state set for profile data
-	//   const [profile, setProfile] = useState([]);
-
-	//   // State set for profile image
-	//   const [avatar, getAvatar] = useState([]);
-	//   //state set for username
-	//   const [name, setName] = useState("name here");
-	//   //state set for score
-	//   const [score, SetScore] = useState([]);
-	//   //state set for changing user settings
-	//   const [settings, getSettings] = useState([]);
-
-	//   useEffect(() => {
-	//     axiosWithAuth()
-	//       .get("https://lambda-guess-who.herokuapp.com/api/auth/login")
-	//       .then(response => {
-	//         setProfile(response.data);
-	//         console.log("DataINeed", response);
-	//       })
-	//       .catch(error => {
-	//         console.log(error.response);
-	//       });
-	//   }, []);
-
-	return (
-		<div className="profile-card">
-
-			{/* {profile.map(profiles => {
-        return <ProfileCard key={profiles.config} profiles={profiles} />;
-	  })} 
-	 }; 
-	  */}
-			<Card>
-				<Image
-					src={profile.avatar}
-
-				/>
-				<Card.Content>
-					<Card.Header>{username}</Card.Header>
-					<h2>{highScore}</h2>
-					{profile.settings}
-					<h1>Share to Twitter</h1>
-				</Card.Content>
-			</Card>
-		</div>
-
-
-	);
-}
-export default ProfileCard;
+export default connect(
+  mapStateToProps,
+  {}
+)(ProfileCard);
